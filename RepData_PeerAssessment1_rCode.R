@@ -101,9 +101,9 @@ tapply(X = warpbreaks$breaks,  INDEX = list(warpbreaks$wool, warpbreaks$tension)
  #                                   INDEX=list(activityDT_imputed$interval, activityDT_imputed$dayType), 
   #                                  mean, na.rm=T)
 
-weekdayTypeIntervalMsteps <- aggregate(steps ~ interval + dayType, activityDT_imputed, mean)
+#weekdayTypeIntervalMsteps <- aggregate(steps ~ interval + dayType, activityDT_imputed, mean)
 
-xyplot(steps ~ interval | factor(dayType), data=weekdayTypeIntervalMsteps, aspect = 1/2, 
+#xyplot(steps ~ interval | factor(dayType), data=weekdayTypeIntervalMsteps, aspect = 1/2, 
        type = "l")
 
 #par(mfrow = c(2, 1))
@@ -117,3 +117,13 @@ xyplot(steps ~ interval | factor(dayType), data=weekdayTypeIntervalMsteps, aspec
 #         main=("Weekday"),
 #         xlab="Interval", ylab = "Number of Steps")
 #})
+
+weekdayTypeIntervalMsteps <- activityDT_imputed %.% group_by(interval, dayType) %.% summarise(meanSteps = mean(steps, 
+                                                                                           na.rm = TRUE))
+
+partitionPlot <- ggplot(data = weekdayTypeIntervalMsteps, mapping = aes(x = interval, y = meanSteps)) + 
+    geom_line() + facet_grid(dayType ~ .) + scale_x_continuous("Day Interval", 
+                                                                   breaks = seq(min(weekdayTypeIntervalMsteps$interval), max(weekdayTypeIntervalMsteps$interval), 100)) + 
+    scale_y_continuous("Mean Number of Steps") + ggtitle("Mean Count of Steps in Each Interval")
+partitionPlot
+

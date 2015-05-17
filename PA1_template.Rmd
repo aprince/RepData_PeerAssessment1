@@ -11,7 +11,7 @@ output:
 library(data.table)
 library(lubridate)
 library(dplyr)
-library(lattice)
+library(ggplot2)
 
 # Set working sub directory to keep files together
 mainDir <- getwd()
@@ -111,19 +111,14 @@ median(dailyTsteps_imputed, na.rm=T)
 
 ## Are there differences in activity patterns between weekdays and weekends?
 ```{r echo=TRUE}
-weekdayTypeIntervalMsteps <- tapply(X=activityDT_imputed$steps,
-                                    INDEX=list(activityDT_imputed$interval,
-                                    activityDT_imputed$dayType), 
-                                    mean, na.rm=T)
+weekdayTypeIntervalMsteps <- tapply(X=activityDT_imputed$steps, 
+                                    INDEX=list(activityDT_imputed$interval, 
+                                    activityDT_imputed$dayType), mean, na.rm=T)
 
-par(mfrow = c(2, 1))
-with(activityDT_imputed, {
-    par(mai = c(0, 1, 1, 0))
-    plot(weekdayTypeIntervalMsteps[, "weekend"], type = "l", xaxt = "n",
-         main = ("Weekend"))
-    title = ("Comparison of mean interval steps on weekends and weekdays")
-    par(mai = c(1, 1, 0, 0))
-    plot(weekdayTypeIntervalMsteps[, "weekday"], type = "l",
-         main=("Weekday"),
-         xlab="Interval", ylab = "Number of Steps")
+partitionPlot <- ggplot(data = weekdayTypeIntervalMsteps, mapping = aes(x = interval, y = meanSteps)) + 
+    geom_line() + facet_grid(dayType ~ .) + scale_x_continuous("Day Interval", 
+    breaks = seq(min(weekdayTypeIntervalMsteps$interval), max(weekdayTypeIntervalMsteps$interval), 100)) + 
+    scale_y_continuous("Mean Number of Steps") + ggtitle("Mean Count of Steps in Each Interval")
+
+partitionPlot
 ```
