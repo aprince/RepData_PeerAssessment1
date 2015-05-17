@@ -1,13 +1,3 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
-
-
-## Loading and preprocessing the data
-```{r echo=TRUE}
 library(data.table)
 library(lubridate)
 library(dplyr)
@@ -38,11 +28,7 @@ activityDT <- fread("./activity.csv", sep="auto",
                     header="auto", na.strings=c("NA"), 
                     stringsAsFactors=FALSE, verbose=FALSE)
 activityDT$date <- as.Date(ymd(activityDT$date))
-```
 
-
-## What is mean total number of steps taken per day?
-```{r echo=TRUE}
 # Calculate total number of steps taken per day
 dailyTsteps <- tapply(activityDT$steps, activityDT$date, sum)
 
@@ -55,10 +41,7 @@ mean(dailyTsteps, na.rm=T)
 
 # Calculate the median of total steps taken per day
 median(dailyTsteps, na.rm=T)
-```
 
-## What is the average daily activity pattern?
-```{r echo=TRUE}
 # Plot the mean interval activity pattern for all dates
 intervalMsteps <- tapply(activityDT$steps, activityDT$interval, mean, na.rm=T)
 
@@ -67,10 +50,7 @@ plot(intervalMsteps, type="l", main=("Daily mean of steps in each interval"),
 
 # Name the interval with the largest average number of steps and the average number of steps in that interval 
 which.max(intervalMsteps)
-```
 
-## Imputing missing values
-```{r echo=TRUE}
 # Count the total number of missing values
 sum(is.na(activityDT$steps))
 
@@ -107,23 +87,33 @@ mean(dailyTsteps_imputed, na.rm=T)
 
 # Calculate the median of total steps taken per day
 median(dailyTsteps_imputed, na.rm=T)
-```
 
-## Are there differences in activity patterns between weekdays and weekends?
-```{r echo=TRUE}
-weekdayTypeIntervalMsteps <- tapply(X=activityDT_imputed$steps,
-                                    INDEX=list(activityDT_imputed$interval,
-                                    activityDT_imputed$dayType), 
-                                    mean, na.rm=T)
+#Are there differences in activity patterns between weekdays and weekends?
+dayType <- factor(weekdays(activityDT_imputed$date) %in% c("Saturday","Sunday"), 
+               labels=c("weekday","weekend"), ordered=FALSE)
 
-par(mfrow = c(2, 1))
-with(activityDT_imputed, {
-    par(mai = c(0, 1, 1, 0))
-    plot(weekdayTypeIntervalMsteps[, "weekend"], type = "l", xaxt = "n",
-         main = ("Weekend"))
-    title = ("Comparison of mean interval steps on weekends and weekdays")
-    par(mai = c(1, 1, 0, 0))
-    plot(weekdayTypeIntervalMsteps[, "weekday"], type = "l",
-         main=("Weekday"),
-         xlab="Interval", ylab = "Number of Steps")
-```
+activityDT_imputed[, c("dayType") := dayType]
+
+# Plot the mean interval activity pattern for all dates
+tapply(X = warpbreaks$breaks,  INDEX = list(warpbreaks$wool, warpbreaks$tension), mean)
+
+#weekdayTypeIntervalMsteps <- tapply(X=activityDT_imputed$steps, 
+ #                                   INDEX=list(activityDT_imputed$interval, activityDT_imputed$dayType), 
+  #                                  mean, na.rm=T)
+
+weekdayTypeIntervalMsteps <- aggregate(steps ~ interval + dayType, activityDT_imputed, mean)
+
+xyplot(steps ~ interval | factor(dayType), data=weekdayTypeIntervalMsteps, aspect = 1/2, 
+       type = "l")
+
+#par(mfrow = c(2, 1))
+#with(activityDT_imputed, {
+#    par(mai = c(0, 1, 1, 0))
+#    plot(weekdayTypeIntervalMsteps[, "weekend"], type = "l", xaxt = "n",
+#         main = ("Weekend"))
+#    title = ("Comparison of mean interval steps on weekends and weekdays")
+#    par(mai = c(1, 1, 0, 0))
+#    plot(weekdayTypeIntervalMsteps[, "weekday"], type = "l",
+#         main=("Weekday"),
+#         xlab="Interval", ylab = "Number of Steps")
+#})
