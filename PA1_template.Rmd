@@ -111,14 +111,18 @@ median(dailyTsteps_imputed, na.rm=T)
 
 ## Are there differences in activity patterns between weekdays and weekends?
 ```{r echo=TRUE}
-weekdayTypeIntervalMsteps <- tapply(X=activityDT_imputed$steps, 
-                                    INDEX=list(activityDT_imputed$interval, 
-                                    activityDT_imputed$dayType), mean, na.rm=T)
+# Set Weekend and Weekday categories in new vector in the data frame
+dayType <- factor(weekdays(activityDT_imputed$date) %in% c("Saturday","Sunday"), 
+               labels=c("weekday","weekend"), ordered=FALSE)
 
-partitionPlot <- ggplot(data = weekdayTypeIntervalMsteps, mapping = aes(x = interval, y = meanSteps)) + 
-    geom_line() + facet_grid(dayType ~ .) + scale_x_continuous("Day Interval", 
-    breaks = seq(min(weekdayTypeIntervalMsteps$interval), max(weekdayTypeIntervalMsteps$interval), 100)) + 
-    scale_y_continuous("Mean Number of Steps") + ggtitle("Mean Count of Steps in Each Interval")
+activityDT_imputed[, c("dayType") := dayType]
+
+#Calculate the mean for each interval for weekdays and weekends
+weekdayTypeIntervalMsteps <- activityDT_imputed %>% group_by(interval, dayType) %>% summarise(meanSteps = mean(steps, na.rm=T))
+
+partitionPlot <- ggplot(data=weekdayTypeIntervalMsteps, mapping=aes(x=interval, y=meanSteps)) + geom_line() + facet_grid(dayType ~ .) + scale_x_continuous("Interval", 
+                        breaks=seq(min(weekdayTypeIntervalMsteps$interval), 
+                        max(weekdayTypeIntervalMsteps$interval), 100)) + scale_y_continuous("Mean Number of Steps") + ggtitle("Mean Number of Steps in Each Interval (weekend v weekdays)")
 
 partitionPlot
 ```
